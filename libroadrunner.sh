@@ -19,7 +19,7 @@ install_roadrunner()
   cd ../../roadrunner/
   git checkout llvm-6
   mkdir build && cd build
-  cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../../install/roadrunner -DLLVM_CONFIG_EXECUTABLE=/usr/bin/llvm-config-6.0 -DTHIRD_PARTY_INSTALL_FOLDER=../../install/roadrunner -DRR_USE_CXX11=OFF -DUSE_TR1_CXX_NS=ON LIBSBML_LIBRARY=/tmp/build/roadrunner/install/roadrunner/lib/libsbml.so LIBSBML_STATIC_LIBRARY=/tmp/build/roadrunner/install/roadrunner/lib/libsbml-static.a ..
+  cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../../install/roadrunner -DLLVM_CONFIG_EXECUTABLE=$1 -DTHIRD_PARTY_INSTALL_FOLDER=../../install/roadrunner -DRR_USE_CXX11=OFF -DUSE_TR1_CXX_NS=ON LIBSBML_LIBRARY=/tmp/build/roadrunner/install/roadrunner/lib/libsbml.so LIBSBML_STATIC_LIBRARY=/tmp/build/roadrunner/install/roadrunner/lib/libsbml-static.a ..
   make -j4 && make install
 }
 
@@ -39,6 +39,7 @@ build_example()
 }
 
 OS=$1
+LLVM_CONFIG=''
 
 # Install the given prerequisites and run a docker container with the selected system.
 # MacOS will run natively
@@ -58,6 +59,8 @@ if [ ${OS} = 'ubuntu:18.04' ]; then
   sudo apt-get install -y libbz2-1.0 libbz2-dev zlibc libxml2-dev libz-dev
   sudo apt-get install -y libncurses5-dev
 
+  export LLVM_CONFIG="/usr/bin/llvm-config-6.0"
+
 elif [ ${OS} = 'ubuntu:16.04' ]; then
   apt-get update
   apt-get install -y \
@@ -74,6 +77,7 @@ elif [ ${OS} = 'ubuntu:16.04' ]; then
   sudo apt-get install -y libbz2-1.0 libbz2-dev zlibc libxml2-dev libz-dev
   sudo apt-get install -y libncurses5-dev
 
+  export LLVM_CONFIG="/usr/bin/llvm-config-6.0"
 
 elif [ ${OS} = 'centos:7' ]; then
   yum update -y
@@ -86,15 +90,25 @@ elif [ ${OS} = 'centos:7' ]; then
   wget \
   yum -y install centos-release-scl epel-release
   yum -y install https://centos7.iuscommunity.org/ius-release.rpm
+  yum install -y cmake cmake3
   yum install -y devtoolset-7-gcc*
-  yum install -y llvm-toolset-6-*
+  yum install -y llvm7.0 llvm7.0-devel llvm7.0-static llvm7.0-libs
   yum install -y ncurses-devel
   yum install -y libxml2-devel
-  yum install -y libzip2 libzip2-devel
+  yum install -y bzip2 bzip2-devel
   yum install -y zlib zlib-devel
 
   # Enable CXX
   . scl_source enable devtoolset-7
+
+  # Set cmake3 as the default cmake
+  sudo alternatives --install /usr/local/bin/cmake cmake /usr/bin/cmake3 20 \
+--slave /usr/local/bin/ctest ctest /usr/bin/ctest3 \
+--slave /usr/local/bin/cpack cpack /usr/bin/cpack3 \
+--slave /usr/local/bin/ccmake ccmake /usr/bin/ccmake3 \
+--family cmake
+
+  export LLVM_CONFIG="/usr/bin/llvm-config-7.0-64"
 
 else
   brew install llvm@6
@@ -104,10 +118,12 @@ else
 
   export CXX=/usr/local/opt/llvm@3.9/bin/clang++
   export CC=/usr/local/opt/llvm@3.9/bin/clang
+
+  export LLVM_CONFIG="/usr/bin/llvm-config-6"
 fi
 
 # Compile the library
-install_roadrunner
+install_roadrunner ${LLVM_CONFIG}
 
 # Check if the example works
 build_example
