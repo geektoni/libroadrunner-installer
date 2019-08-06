@@ -80,6 +80,17 @@ elif [ ${OS} = 'ubuntu:16.04' ]; then
   export LLVM_CONFIG="/usr/bin/llvm-config-6.0"
 
 elif [ ${OS} = 'centos:7' ]; then
+
+  # Add custom repository for llvm-toolset-6.0
+  cat << EOF  > /etc/yum.repos.d/springdale-7-SCL.repo
+  [SCL-core]
+  name=Springdale SCL Base $releasever - $basearch
+  mirrorlist=http://springdale.princeton.edu/data/springdale/SCL/$releasever/$basearch/mirrorlist
+  #baseurl=http://springdale.princeton.edu/data/springdale/SCL/$releasever/$basearch
+  gpgcheck=1
+  gpgkey=http://springdale.math.ias.edu/data/puias/7/x86_64/os/RPM-GPG-KEY-puias
+EOF
+
   yum update -y
   yum install -y \
   git \
@@ -92,7 +103,7 @@ elif [ ${OS} = 'centos:7' ]; then
   yum -y install https://centos7.iuscommunity.org/ius-release.rpm
   yum install -y cmake cmake3
   yum install -y devtoolset-7-gcc*
-  yum install -y llvm7.0 llvm7.0-devel llvm7.0-static llvm7.0-libs
+  yum install -y llvm-toolset-6.0-llvm llvm-toolset-6.0-libs llvm-toolset-6.0-devel llvm-toolset-6.0-static
   yum install -y ncurses-devel
   yum install -y libxml2-devel
   yum install -y bzip2 bzip2-devel
@@ -100,6 +111,7 @@ elif [ ${OS} = 'centos:7' ]; then
 
   # Enable CXX
   . scl_source enable devtoolset-7
+  . scl_source enable llvm-toolset-6.0
 
   # Set cmake3 as the default cmake
   sudo alternatives --install /usr/local/bin/cmake cmake /usr/bin/cmake3 20 \
@@ -108,7 +120,7 @@ elif [ ${OS} = 'centos:7' ]; then
 --slave /usr/local/bin/ccmake ccmake /usr/bin/ccmake3 \
 --family cmake
 
-  export LLVM_CONFIG="/usr/bin/llvm-config-7.0-64"
+  export LLVM_CONFIG="/opt/rh/llvm-toolset-6.0/root/usr/bin/llvm-config"
 
 else
   brew install llvm@6
