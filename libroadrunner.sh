@@ -19,11 +19,23 @@ install_roadrunner()
   cd ../../roadrunner/
   git checkout llvm-6
   mkdir build && cd build
-  #ln -s /lib/x86_64-linux-gnu/libz.so.1 /lib/x86_64-linux-gnu/libz.so
-  # comment line in source/CMakeLists.txt
-  #sed -i "s|install(TARGETS roadrunner|# install(TARGETS roadrunner|" ../source/CMakeLists.txt
-  cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../../install/roadrunner -DLLVM_CONFIG_EXECUTABLE=/usr/bin/llvm-config -DTHIRD_PARTY_INSTALL_FOLDER=../../install/roadrunner -DRR_USE_CXX11=OFF -DUSE_TR1_CXX_NS=ON LIBSBML_LIBRARY=/tmp/build/roadrunner/install/roadrunner/lib/libsbml.so LIBSBML_STATIC_LIBRARY=/tmp/build/roadrunner/install/roadrunner/lib/libsbml-static.a ..
+  cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../../install/roadrunner -DLLVM_CONFIG_EXECUTABLE=/usr/bin/llvm-config-6.0 -DTHIRD_PARTY_INSTALL_FOLDER=../../install/roadrunner -DRR_USE_CXX11=OFF -DUSE_TR1_CXX_NS=ON LIBSBML_LIBRARY=/tmp/build/roadrunner/install/roadrunner/lib/libsbml.so LIBSBML_STATIC_LIBRARY=/tmp/build/roadrunner/install/roadrunner/lib/libsbml-static.a ..
   make -j4 && make install
+}
+
+build_example()
+{
+  cd /tmp/build/example
+  mkdir build
+  cd build
+  cmake ../
+  make -j 4
+  ./libroadrunner-example
+  if [ $? -eq 0 ]; then
+    echo "libroadrunner was compiled successfully"
+  else
+    echo "libroadrunner was not compiled successfully"
+  fi
 }
 
 OS=$1
@@ -75,7 +87,7 @@ elif [ ${OS} = 'centos:7' ]; then
   yum -y install centos-release-scl epel-release
   yum -y install https://centos7.iuscommunity.org/ius-release.rpm
   yum install -y devtoolset-7-gcc*
-  yum install -y llvm llvm-devel llvm-static llvm-libs llvm-toolset-7
+  yum install -y llvm-toolset-6-*
   yum install -y ncurses-devel
   yum install -y libxml2-devel
   yum install -y libzip2 libzip2-devel
@@ -85,7 +97,7 @@ elif [ ${OS} = 'centos:7' ]; then
   . scl_source enable devtoolset-7
 
 else
-  brew install llvm@3.9
+  brew install llvm@6
   brew install swig
   brew install git
   brew install cmake
@@ -96,3 +108,6 @@ fi
 
 # Compile the library
 install_roadrunner
+
+# Check if the example works
+build_example
