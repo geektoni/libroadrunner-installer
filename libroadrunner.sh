@@ -82,13 +82,13 @@ elif [ ${OS} = 'ubuntu:16.04' ]; then
 elif [ ${OS} = 'centos:7' ]; then
 
   # Add custom repository for llvm-toolset-6.0
-  cat << EOF  > /etc/yum.repos.d/springdale-7-SCL.repo
-  [SCL-core]
-  name=Springdale SCL Base $releasever - $basearch
-  mirrorlist=http://springdale.princeton.edu/data/springdale/SCL/$releasever/$basearch/mirrorlist
-  #baseurl=http://springdale.princeton.edu/data/springdale/SCL/$releasever/$basearch
-  gpgcheck=1
-  gpgkey=http://springdale.math.ias.edu/data/puias/7/x86_64/os/RPM-GPG-KEY-puias
+  cat << 'EOF'  > /etc/yum.repos.d/springdale-7-SCL.repo
+[SCL-core]
+name=Springdale SCL Base $releasever - $basearch
+mirrorlist=http://springdale.princeton.edu/data/springdale/SCL/$releasever/$basearch/mirrorlist
+#baseurl=http://springdale.princeton.edu/data/springdale/SCL/$releasever/$basearch
+gpgcheck=1
+gpgkey=http://springdale.math.ias.edu/data/puias/7/x86_64/os/RPM-GPG-KEY-puias
 EOF
 
   yum update -y
